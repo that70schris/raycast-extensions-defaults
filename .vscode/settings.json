@@ -1,3 +1,9 @@
 {
-  "search.useIgnoreFiles": true
+  "search.useIgnoreFiles": true,
+  "workbench.colorCustomizations": {
+    "statusBar.background": "#1b1b1f",
+  },
+  "yaml.schemas": {
+    "https://json.schemastore.org/github-funding.json": "file:///Users/chris/raycast/extensions/defaults/.github/FUNDING.yml"
+  }
 }

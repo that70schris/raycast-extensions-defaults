@@ -1,3 +1,4 @@
+import { parse } from '@plist/parse';
 import { exec } from 'child_process';
 
 export default class Domain {
@@ -13,60 +14,18 @@ export default class Domain {
   }
 
   set settings(value: string) {
-    let id = this.id;
-    function parse(value: string = '') {
-      value = value.replace(/\n*?(\n.*)\n*/m, '$1');
-      const open = value.split('\n').shift()?.trim();
-      value = value.split('\n').slice(1, -2).join('\n');
-      value = value.replace(/\{(.*)\};?$/gm, parse);
-      value = value.replace(/\((.*)\);?$/gm, parse);
-      console.log(value);
-
-      switch (open) {
-        case '{':
-          return JSON.stringify(
-            value.split('\n').reduce((result, line) => {
-              const [key, value] = line.trim().split(/\s*=\s*/);
-
-              return {
-                ...result,
-                [key]: value.replace(/;$/, ''),
-              };
-            }, {}),
-          );
-        case '[':
-          return JSON.stringify(
-            value.split('\n').map((line) => {
-              return line.trim().replace(/"?(.*?)"?;$/, '$1');
-            }),
-          );
-        default:
-          return value;
-      }
-    }
-
-    this._settings = parse(value);
-
-    // this._settings = value
-    //   .split('\n')
-    //   .map((line) => {
-    //     return line
-    //       .trim()
-    //       .replace(/;$/, ',')
-    //       .replace(/\($/, '[')
-    //       .replace(/\),?$/, '],')
-    //       .replace(/^\s*"?(.*?)"?\s*=\s*([[{])$/, '"$1": $2')
-    //       .replace(/^\s*"?([^"].*?)"?\s*=\s*"?(.*?)"?,$/, '"$1": "$2",')
-    //       .replace(/^\s*"?([^\d[\]{}]+?)"?,?$/, '"$1",');
-    //   })
-    //   .join('\n')
-    //   .replace(/,$(\s*?[\]}])/gm, '$1');
-
-    // try {
-    //   this._settings = JSON.stringify(JSON.parse(this._settings), null, 2);
-    // } catch (e) {
-    //   console.error(this.id, e);
-    // }
+    this._settings = JSON.stringify(
+      parse(value),
+      (key, value) => {
+        switch (typeof value) {
+          case 'bigint':
+            return value.toString();
+          default:
+            return value;
+        }
+      },
+      2,
+    );
   }
 
   private _fetch?: Promise<void>;
@@ -76,7 +35,7 @@ export default class Domain {
       : (this._fetch =
           this._fetch ??
           new Promise((resolve) => {
-            exec(`defaults read '${this.id}'`, (error, stdout) => {
+            exec(`defaults export '${this.id}' -`, (error, stdout) => {
               this.settings = stdout;
               resolve();
             });

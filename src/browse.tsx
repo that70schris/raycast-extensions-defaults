@@ -3,6 +3,7 @@ import { execSync } from 'child_process';
 import { useState } from 'react';
 import Domain from './domain';
 
+let isLoading = true;
 execSync('defaults domains')
   .toString()
   .split(', ')
@@ -10,7 +11,6 @@ execSync('defaults domains')
     return new Domain(domain);
   });
 
-let isLoading = true;
 export default function render() {
   const [isLoadingDetail, setIsLoadingDetail] = useState<boolean>(true);
   isLoading = false;
@@ -37,7 +37,7 @@ export default function render() {
             detail={
               <List.Item.Detail
                 isLoading={isLoadingDetail}
-                markdown={`\`\`\`json
+                markdown={`\`\`\`
 ${domain.settings}
 \`\`\``}
               />
