@@ -14,38 +14,36 @@ export default class Domain {
 
   set settings(value: string) {
     let id = this.id;
-    function parse(value: string = '') {
-      value = value.replace(/\n*?(\n.*)\n*/m, '$1');
-      const open = value.split('\n').shift()?.trim();
-      value = value.split('\n').slice(1, -2).join('\n');
-      value = value.replace(/\{(.*)\};?$/gm, parse);
-      value = value.replace(/\((.*)\);?$/gm, parse);
-      console.log(value);
+    function parse(preferences: string = '') {
+      preferences = preferences.replace(/\n*?(\n.*)\n*/m, '$1');
+      const opener = preferences.split('\n').shift()?.trim();
+      let lines = preferences.split('\n').slice(1, -2);
+      preferences = lines.join('\n');
 
-      switch (open) {
+      switch (opener) {
         case '{':
-          return JSON.stringify(
-            value.split('\n').reduce((result, line) => {
-              const [key, value] = line.trim().split(/\s*=\s*/);
+          return lines.reduce((result, line): { [key: string]: any } => {
+            const [key, value] = line.trim().split(/\s*=\s*/);
+            lines.shift();
 
-              return {
-                ...result,
-                [key]: value.replace(/;$/, ''),
-              };
-            }, {}),
-          );
-        case '[':
-          return JSON.stringify(
-            value.split('\n').map((line) => {
-              return line.trim().replace(/"?(.*?)"?;$/, '$1');
-            }),
-          );
+            return {
+              ...result,
+              [key]: parse(lines.join('\n').match(/^([{[]?$.*[\]}]?);$/m)?.[0]),
+            };
+          }, {});
+        case '(':
+          return lines.map((line): any => {
+            lines.shift();
+
+            return parse(line.trim().replace(/"?(.*?)"?;$/, '$1'));
+          });
+
         default:
-          return value;
+          return preferences?.replace(/;$/, '');
       }
     }
 
-    this._settings = parse(value);
+    this._settings = JSON.stringify(parse(value));
 
     // this._settings = value
     //   .split('\n')
