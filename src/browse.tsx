@@ -1,19 +1,13 @@
-import { ActionPanel, List } from '@raycast/api';
-import { execSync } from 'child_process';
+import { Action, ActionPanel, Icon, List } from '@raycast/api';
 import { useState } from 'react';
-import Domain from './domain';
+import Default, { Domains, Export } from './domain';
 
-let isLoading = true;
-execSync('defaults domains')
-  .toString()
-  .split(', ')
-  .map((domain) => {
-    return new Domain(domain);
-  });
-
-export default function render() {
+function Page({ page }: { page: Default }) {
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isLoadingDetail, setIsLoadingDetail] = useState<boolean>(true);
-  isLoading = false;
+  page.fetch().then(() => {
+    setIsLoading(false);
+  });
 
   return (
     <List
@@ -22,30 +16,40 @@ export default function render() {
       onSelectionChange={(id) => {
         if (id) {
           setIsLoadingDetail(true);
-          new Domain(id).fetch().then(() => {
+          new Export(id).fetch().then(() => {
             setIsLoadingDetail(false);
           });
         }
       }}
     >
-      {Object.values(Domain.index).map((domain) => {
+      {page.list.map((item) => {
         return (
           <List.Item
-            id={domain.id}
-            key={domain.id}
-            title={domain.id}
+            id={item.id}
+            key={item.id}
+            title={item.id}
             detail={
               <List.Item.Detail
                 isLoading={isLoadingDetail}
-                markdown={`\`\`\`
-${domain.settings}
-\`\`\``}
+                markdown={item.detail}
               />
             }
-            actions={<ActionPanel></ActionPanel>}
+            actions={
+              <ActionPanel>
+                <Action.Push
+                  icon={Icon.ChevronRight}
+                  title="Open"
+                  target={<Page page={item} />}
+                />
+              </ActionPanel>
+            }
           />
         );
       })}
     </List>
   );
+}
+
+export default function domains() {
+  return <Page page={new Domains()} />;
 }
