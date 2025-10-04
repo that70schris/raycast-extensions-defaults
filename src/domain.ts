@@ -2,12 +2,12 @@ import { parse } from '@plist/parse';
 import { exec } from 'child_process';
 
 export default class Default {
-  protected _list?: any[];
-  get list(): any[] {
+  protected _list?: Export[];
+  get list(): Export[] {
     return this._list ?? [];
   }
 
-  protected _detail?: any;
+  protected _detail?: string;
   get detail(): string {
     return '';
   }
@@ -20,20 +20,20 @@ export default class Default {
 
 export class Domains extends Default {
   override fetch(): Promise<void> {
-    return (this._fetch =
-      this._fetch ??
-      new Promise((resolve) => {
-        exec('defaults domains', (error, stdout) => {
-          this._list = stdout
-            .toString()
-            .split(', ')
-            .map((id) => {
-              return new Export(id);
-            });
+    return (this._fetch
+      = this._fetch
+        ?? new Promise((resolve) => {
+          exec('defaults domains', (error, stdout) => {
+            this._list = stdout
+              .toString()
+              .split(', ')
+              .map((id) => {
+                return new Export(id);
+              });
 
-          resolve();
-        });
-      }));
+            resolve();
+          });
+        }));
   }
 }
 
@@ -59,14 +59,14 @@ export class Export extends Default {
   override fetch(): Promise<void> {
     return this._detail
       ? Promise.resolve()
-      : (this._fetch =
-          this._fetch ??
-          new Promise((resolve) => {
-            exec(`defaults export '${this.id}' -`, (error, stdout) => {
-              this._detail = parse(stdout);
-              resolve();
-            });
-          }));
+      : (this._fetch
+          = this._fetch
+            ?? new Promise((resolve) => {
+              exec(`defaults export '${this.id}' -`, (error, stdout) => {
+                this._detail = parse(stdout)?.toString();
+                resolve();
+              });
+            }));
   }
 
   override get detail(): string {

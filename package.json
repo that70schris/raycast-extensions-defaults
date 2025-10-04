@@ -25,11 +25,8 @@
     "macos-defaults": "1.0.2"
   },
   "devDependencies": {
-    "@raycast/eslint-config": "2.0.4",
     "@types/node": "22.15.29",
     "@types/react": "19.1.6",
-    "eslint": "9.28.0",
-    "prettier": "3.5.3",
     "typescript": "5.8.3"
   },
   "scripts": {
